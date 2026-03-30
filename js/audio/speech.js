@@ -83,12 +83,12 @@ export function speak(text, rate = 0.9) {
     try { speechSynthesis.cancel(); } catch (e) {}
 
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = useLang;
+    utter.lang = 'en-US'; // Always English — no exceptions
     if (selectedVoice) {
       utter.voice = selectedVoice;
     }
-    utter.rate = rate * 1.05; // Slightly faster for energy
-    utter.pitch = 1.35; // Higher pitch = happier, more child-friendly
+    utter.rate = rate * 1.05;
+    utter.pitch = 1.35;
     utter.volume = 1.0;
 
     // CRITICAL: Store reference to prevent Chrome GC
@@ -137,7 +137,7 @@ export function speakQueued(text, rate = 0.9) {
 
   return new Promise(resolve => {
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = useLang;
+    utter.lang = 'en-US';
     if (selectedVoice) utter.voice = selectedVoice;
     utter.rate = rate * 1.05;
     utter.pitch = 1.35;
@@ -166,7 +166,7 @@ export function warmUpSpeech() {
   if (!speechAvailable) return;
   try {
     const dummy = new SpeechSynthesisUtterance(' ');
-    dummy.lang = useLang;
+    dummy.lang = 'en-US';
     dummy.volume = 0.01;
     dummy.rate = 2;
     if (selectedVoice) dummy.voice = selectedVoice;

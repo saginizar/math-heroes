@@ -42,17 +42,13 @@
   <script type="module" src="js/app.js"></script>
 
   <script>
-    // Force-purge old caches and re-register SW
+    // Unregister all service workers and clear all caches — no SW, always fresh files
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
-        // Nuke all old caches
         const keys = await caches.keys();
         await Promise.all(keys.map(k => caches.delete(k)));
-        // Unregister old SWs
         const regs = await navigator.serviceWorker.getRegistrations();
         await Promise.all(regs.map(r => r.unregister()));
-        // Register fresh
-        navigator.serviceWorker.register('sw.js').catch(() => {});
       });
     }
   </script>
