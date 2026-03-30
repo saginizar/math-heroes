@@ -283,7 +283,7 @@ function bindStarCollector(levelContainer, gameArea) {
   levelContainer.querySelectorAll('.collector-num').forEach(btn => {
     btn.addEventListener('pointerdown', async (e) => {
       e.preventDefault();
-      if (currentSession.state === 'ANIMATING') return;
+      if (currentSession.state === 'ANIMATING' || currentSession.state === 'COMPLETE') return;
 
       playPop();
       const result = currentSetup.handleTap(btn);

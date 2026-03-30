@@ -158,6 +158,7 @@ export const PHRASES = {
   plus: 'ועוד',
   minus: 'פחות',
   times: 'כפול',
+  divided: 'חלקי',
   equals: 'שווה',
   howMuch: 'כמה זה',
   biggerThan: 'גדול מ',
@@ -249,7 +250,7 @@ export function numberToHebrew(n) {
 export function problemToHebrew(a, op, b) {
   const aH = numberToHebrew(a);
   const bH = numberToHebrew(b);
-  const opH = op === '+' ? PHRASES.plus : op === '-' ? PHRASES.minus : PHRASES.times;
+  const opH = op === '+' ? PHRASES.plus : op === '-' ? PHRASES.minus : op === '÷' ? PHRASES.divided : PHRASES.times;
   return `כמה זה ${aH} ${opH} ${bH}?`;
 }
 

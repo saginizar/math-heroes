@@ -1,6 +1,6 @@
 // sw.js — Service Worker for offline PWA support
 
-const CACHE_NAME = 'mathheroes-v12';
+const CACHE_NAME = 'mathheroes-v13';
 const ASSETS = [
   './',
   'index.html',

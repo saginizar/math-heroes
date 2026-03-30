@@ -46,11 +46,19 @@ export function setupPowerLaunch(container, levelConfig) {
 
 // ========== PATH CHOOSER ==========
 export function setupPathChooser(container, levelConfig) {
-  const params = getDifficultyParams(levelConfig.operation);
-  // Allow double-digit targets: range up to 50 for more challenge
-  const maxTarget = Math.min(params.max * 5, 50);
-  const target = randomInt(Math.max(params.min + 2, 8), maxTarget);
-  const problem = generatePathChooserProblem(target, params);
+  const op = levelConfig.operation || 'addition';
+  const params = getDifficultyParams(op);
+  // For division, target is the quotient (small number); for multiplication let generator decide; for add/sub use range
+  let target;
+  if (op === 'division') {
+    target = randomInt(1, 8);
+  } else if (op === 'multiplication') {
+    target = randomInt(4, 20); // will be overridden inside generator for clean products
+  } else {
+    const maxTarget = Math.min(params.max * 5, 50);
+    target = randomInt(Math.max(params.min + 2, 8), maxTarget);
+  }
+  const problem = generatePathChooserProblem(target, params, op);
 
   container.innerHTML = `
     <div class="level-scene path-chooser-scene">
@@ -309,9 +317,15 @@ export function setupBridgeBuilder(container, levelConfig) {
 // ========== HERO RESCUE (Multi-step) ==========
 export function setupHeroRescue(container, levelConfig, phaseIndex = 0) {
   const params = getDifficultyParams(levelConfig.operation);
+  const op = levelConfig.operation || 'addition';
+  // For mixed world boss, rotate through all 4 operations across phases
+  const opsForPhases = op === 'mixed'
+    ? ['addition', 'subtraction', 'multiplication']
+    : [op, op, op];
+
   const phases = [
     () => {
-      const q = generateQuestion('addition', params);
+      const q = generateQuestion(opsForPhases[0], params);
       return { ...q, phaseName: `${PHRASES.phase} 1`, phaseDesc: '' };
     },
     () => {
@@ -326,11 +340,11 @@ export function setupHeroRescue(container, levelConfig, phaseIndex = 0) {
         isSequence: true,
         sequence: s.sequence,
         showVisualAid: false,
-        verticalHtml: null, // Sequences use horizontal display
+        verticalHtml: null,
       };
     },
     () => {
-      const q = generateQuestion('addition', { ...params, min: params.min + 2, max: Math.min(params.max + 5, 20) });
+      const q = generateQuestion(opsForPhases[2], { ...params, min: params.min + 1, max: Math.min(params.max + 5, 50) });
       return { ...q, phaseName: `${PHRASES.phase} 3`, phaseDesc: '' };
     },
   ];

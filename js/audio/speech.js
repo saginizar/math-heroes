@@ -191,5 +191,5 @@ export function getTTSStatus() {
 }
 
 export function isUsingHebrew() {
-  return useLang.startsWith('he') || useLang.startsWith('iw');
+  return false; // Hebrew TTS never produces sound on this device — always use English
 }

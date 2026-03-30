@@ -63,6 +63,15 @@ function makeMultiplication(params) {
   return { a, b, op: '×', answer, hebrewText: problemToHebrew(a, '×', b) };
 }
 
+function makeDivision(params) {
+  // Generate as c × b = a, then show a ÷ b = c
+  const maxFactor = Math.min(Math.floor(params.max / 2), 10);
+  const c = randomInt(1, Math.min(maxFactor, 8)); // answer (quotient)
+  const b = randomInt(1, Math.min(maxFactor, 5)); // divisor
+  const a = b * c; // dividend
+  return { a, b, op: '÷', answer: c, hebrewText: problemToHebrew(a, '÷', b) };
+}
+
 function generateDistractors(answer, count, params) {
   const distractors = new Set();
   const dist = params.distractorDistance;
@@ -118,6 +127,9 @@ export function generateQuestion(operation, difficultyOverride = null) {
       case 'multiplication':
         question = makeMultiplication(params);
         break;
+      case 'division':
+        question = makeDivision(params);
+        break;
       default:
         question = makeAddition(params);
     }
@@ -138,17 +150,29 @@ export function generateQuestion(operation, difficultyOverride = null) {
   };
 }
 
-// Generate a comparison question for Number Catcher
+// Generate a comparison question for StarCollector — unique values
 export function generateComparisonSet(threshold, count, params) {
+  const used = new Set();
   const numbers = [];
-  const matching = Math.floor(count * 0.5); // ~half should match
+  const matching = Math.floor(count * 0.5); // half should match
 
-  for (let i = 0; i < matching; i++) {
-    numbers.push({ value: randomInt(threshold + 1, Math.max(threshold + 5, params.max)), matches: true });
+  // Matching numbers: strictly greater than threshold
+  const matchMax = Math.max(threshold + 1, params.max, threshold + 8);
+  let attempts = 0;
+  while (numbers.filter(n => n.matches).length < matching && attempts < 200) {
+    const v = randomInt(threshold + 1, matchMax);
+    if (!used.has(v)) { used.add(v); numbers.push({ value: v, matches: true }); }
+    attempts++;
   }
-  for (let i = matching; i < count; i++) {
-    numbers.push({ value: randomInt(params.min, threshold), matches: false });
+
+  // Non-matching numbers: 1 to threshold (exclusive of already used)
+  attempts = 0;
+  while (numbers.filter(n => !n.matches).length < (count - matching) && attempts < 200) {
+    const v = randomInt(Math.max(1, params.min), threshold);
+    if (!used.has(v)) { used.add(v); numbers.push({ value: v, matches: false }); }
+    attempts++;
   }
+
   return shuffleArray(numbers);
 }
 
@@ -256,23 +280,81 @@ function makeNoCarryPair(target) {
   return { a, b: target - a };
 }
 
-// Generate expression for Path Chooser
-export function generatePathChooserProblem(targetAnswer, params) {
-  // Correct path
-  const { a: a1, b: b1 } = makeNoCarryPair(targetAnswer);
-  const correctExpr = { display: `${a1} + ${b1}`, value: targetAnswer };
-
-  // Wrong paths — nearby values but not equal
-  const wrongExprs = [];
+// Generate expression for Path Chooser (supports all 4 operations)
+export function generatePathChooserProblem(targetAnswer, params, operation = 'addition') {
+  let correctExpr, wrongExprs = [];
   const usedValues = new Set([targetAnswer]);
-  for (let i = 0; i < 2; i++) {
-    let val;
-    do {
-      val = randomInt(Math.max(3, targetAnswer - 8), targetAnswer + 8);
-    } while (usedValues.has(val) || val < 2);
-    usedValues.add(val);
-    const { a: wa, b: wb } = makeNoCarryPair(val);
-    wrongExprs.push({ display: `${wa} + ${wb}`, value: val });
+
+  if (operation === 'subtraction') {
+    // a - b = target
+    const makeSubExpr = (val) => {
+      const b = randomInt(1, Math.min(val, params.max || 10));
+      return { display: `${val + b} - ${b}`, value: val };
+    };
+    correctExpr = makeSubExpr(targetAnswer);
+    for (let i = 0; i < 2; i++) {
+      let val;
+      let tries = 0;
+      do { val = randomInt(Math.max(1, targetAnswer - 5), targetAnswer + 5); tries++; }
+      while (usedValues.has(val) && tries < 20);
+      usedValues.add(val);
+      wrongExprs.push(makeSubExpr(val));
+    }
+
+  } else if (operation === 'multiplication') {
+    // Pick target as a product: a × b
+    const makeMultExpr = (val) => {
+      const factors = [];
+      for (let i = 2; i <= Math.min(val, 10); i++) {
+        if (val % i === 0 && val / i >= 2 && val / i <= 10) factors.push(i);
+      }
+      const b = factors.length ? factors[randomInt(0, factors.length - 1)] : 1;
+      return { display: `${val / b} × ${b}`, value: val };
+    };
+    // Build a proper product target
+    const a = randomInt(2, 5), b = randomInt(2, 5);
+    const multTarget = a * b;
+    correctExpr = makeMultExpr(multTarget);
+    for (let i = 0; i < 2; i++) {
+      let fa, fb, val;
+      let tries = 0;
+      do { fa = randomInt(2, 5); fb = randomInt(2, 5); val = fa * fb; tries++; }
+      while (usedValues.has(val) && tries < 20);
+      usedValues.add(val);
+      wrongExprs.push(makeMultExpr(val));
+    }
+    const paths = shuffleArray([correctExpr, ...wrongExprs]);
+    return { target: multTarget, paths, correctIndex: paths.indexOf(correctExpr) };
+
+  } else if (operation === 'division') {
+    // a ÷ b = target (quotient)
+    const makeDivExpr = (val) => {
+      const b = randomInt(2, 5);
+      return { display: `${val * b} ÷ ${b}`, value: val };
+    };
+    correctExpr = makeDivExpr(targetAnswer);
+    for (let i = 0; i < 2; i++) {
+      let val;
+      let tries = 0;
+      do { val = randomInt(1, 10); tries++; }
+      while (usedValues.has(val) && tries < 20);
+      usedValues.add(val);
+      wrongExprs.push(makeDivExpr(val));
+    }
+
+  } else {
+    // Addition (default)
+    const { a: a1, b: b1 } = makeNoCarryPair(targetAnswer);
+    correctExpr = { display: `${a1} + ${b1}`, value: targetAnswer };
+    for (let i = 0; i < 2; i++) {
+      let val;
+      let tries = 0;
+      do { val = randomInt(Math.max(3, targetAnswer - 8), targetAnswer + 8); tries++; }
+      while ((usedValues.has(val) || val < 2) && tries < 20);
+      usedValues.add(val);
+      const { a: wa, b: wb } = makeNoCarryPair(val);
+      wrongExprs.push({ display: `${wa} + ${wb}`, value: val });
+    }
   }
 
   const paths = shuffleArray([correctExpr, ...wrongExprs]);
