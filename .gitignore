@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (if ever needed)
+node_modules/
+package-lock.json
+
+# SDLC pipeline outputs (tracked separately)
+# reports/
+
+# Misc
+*.log
+*.tmp
