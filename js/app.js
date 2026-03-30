@@ -2,7 +2,7 @@
 
 import { initSpeech, speak, warmUpSpeech, markInteraction, isUsingHebrew, setTTSMuted } from './audio/speech.js';
 import { resumeAudio, playKeyPop, playPop, playWhoosh, startBgMusic, toggleBgMusic, isBgMusicPlaying, isMuted, setMuted } from './audio/sfx.js';
-import { loadGame, saveGame, isSetupComplete, setPlayerName, setHeroCharacter, setQuestionCount, setDifficultyPref, completeSetup, getState, getTodayProblems } from './engine/save-manager.js';
+import { loadGame, saveGame, isSetupComplete, setPlayerName, setHeroCharacter, setQuestionCount, setDifficultyPref, completeSetup, getState, getTodayProblems, ensureWorldLevels } from './engine/save-manager.js';
 import { renderSplash } from './screens/splash.js';
 import { renderWorldMap } from './screens/world-map.js';
 import { renderLevelSelect } from './screens/level-select.js';
@@ -30,6 +30,13 @@ function onFirstInteraction() {
 
 function init() {
   loadGame();
+
+  // Ensure save state has level entries for all worlds
+  for (const [wId, wConfig] of Object.entries(WORLDS)) {
+    ensureWorldLevels(wId, wConfig.levels.length);
+  }
+  saveGame();
+
   initSpeech();
 
   // Cache screen elements

@@ -30,11 +30,11 @@ function createDefaultState() {
           bestAccuracy: 0,
         })),
       },
-      web_tower: { unlocked: false, levels: [] },
-      iron_lab: { unlocked: false, levels: [] },
-      mushroom_quest: { unlocked: false, levels: [] },
-      grand_circuit: { unlocked: false, levels: [] },
-      dr_zero_lair: { unlocked: false, levels: [] },
+      web_tower: { unlocked: false, levels: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, stars: 0, completed: false, bestAccuracy: 0 })) },
+      iron_lab: { unlocked: false, levels: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, stars: 0, completed: false, bestAccuracy: 0 })) },
+      mushroom_quest: { unlocked: false, levels: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, stars: 0, completed: false, bestAccuracy: 0 })) },
+      grand_circuit: { unlocked: false, levels: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, stars: 0, completed: false, bestAccuracy: 0 })) },
+      dr_zero_lair: { unlocked: false, levels: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, stars: 0, completed: false, bestAccuracy: 0 })) },
     },
     difficulty: {
       addition: { level: 1, history: [] },
@@ -207,6 +207,22 @@ export function importSave(json) {
     return true;
   } catch (e) {
     return false;
+  }
+}
+
+export function ensureWorldLevels(worldId, levelCount) {
+  if (!gameState) loadGame();
+  if (!gameState.worlds[worldId]) {
+    gameState.worlds[worldId] = { unlocked: false, levels: [] };
+  }
+  const world = gameState.worlds[worldId];
+  while (world.levels.length < levelCount) {
+    world.levels.push({
+      id: world.levels.length + 1,
+      stars: 0,
+      completed: false,
+      bestAccuracy: 0,
+    });
   }
 }
 

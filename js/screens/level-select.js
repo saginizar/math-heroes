@@ -68,5 +68,5 @@ export function renderLevelSelect(container, worldId) {
     </div>
   `;
 
-  setTimeout(() => speak(isUsingHebrew() ? world.nameHe : 'Speed City'), 300);
+  setTimeout(() => speak(isUsingHebrew() ? world.nameHe : (world.nameEn || world.nameHe)), 300);
 }
