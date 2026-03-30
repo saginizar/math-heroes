@@ -51,6 +51,12 @@ function createDefaultState() {
       todayProblems: 0,
       todayDate: null,
     },
+    // Parent report data
+    parentData: {
+      sessions: [],       // { date, startTime, endTime, duration, problems, correct }
+      opStats: {},        // per operation: { total, correct, totalTime }
+      levelHistory: [],   // { date, world, level, type, operation, accuracy, stars, passed, duration }
+    },
   };
 }
 
@@ -80,6 +86,10 @@ export function loadGame() {
       // Migrate difficulty preference
       if (!gameState.player.difficultyPref) {
         gameState.player.difficultyPref = 'easy';
+      }
+      // Migrate parentData
+      if (!gameState.parentData) {
+        gameState.parentData = { sessions: [], opStats: {}, levelHistory: [] };
       }
     } else {
       gameState = createDefaultState();
@@ -229,4 +239,76 @@ export function ensureWorldLevels(worldId, levelCount) {
 export function resetGame() {
   gameState = createDefaultState();
   saveGame();
+}
+
+// ========== PARENT REPORT TRACKING ==========
+let _sessionStart = null;
+let _sessionProblems = 0;
+let _sessionCorrect = 0;
+
+export function startParentSession() {
+  _sessionStart = Date.now();
+  _sessionProblems = 0;
+  _sessionCorrect = 0;
+  const state = getState();
+  state.stats.sessionsPlayed = (state.stats.sessionsPlayed || 0) + 1;
+  saveGame();
+}
+
+export function trackProblem(operation, correct) {
+  _sessionProblems++;
+  if (correct) _sessionCorrect++;
+  const state = getState();
+  if (!state.parentData) state.parentData = { sessions: [], opStats: {}, levelHistory: [] };
+  if (!state.parentData.opStats[operation]) {
+    state.parentData.opStats[operation] = { total: 0, correct: 0 };
+  }
+  state.parentData.opStats[operation].total++;
+  if (correct) state.parentData.opStats[operation].correct++;
+}
+
+export function trackLevelComplete(world, level, type, operation, accuracy, stars, passed, duration) {
+  const state = getState();
+  if (!state.parentData) state.parentData = { sessions: [], opStats: {}, levelHistory: [] };
+  const israelTime = new Date().toLocaleString('en-IL', { timeZone: 'Asia/Jerusalem' });
+  state.parentData.levelHistory.push({
+    date: israelTime,
+    world, level, type, operation, accuracy, stars, passed, duration: Math.round(duration / 1000),
+  });
+  // Keep last 200 entries
+  if (state.parentData.levelHistory.length > 200) {
+    state.parentData.levelHistory = state.parentData.levelHistory.slice(-200);
+  }
+  saveGame();
+}
+
+export function endParentSession() {
+  if (!_sessionStart) return;
+  const state = getState();
+  if (!state.parentData) state.parentData = { sessions: [], opStats: {}, levelHistory: [] };
+  const now = Date.now();
+  const israelTime = new Date().toLocaleString('en-IL', { timeZone: 'Asia/Jerusalem' });
+  const duration = Math.round((now - _sessionStart) / 1000);
+  // Only record sessions longer than 10 seconds
+  if (duration > 10) {
+    state.parentData.sessions.push({
+      date: israelTime,
+      startTime: new Date(_sessionStart).toLocaleTimeString('en-IL', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit' }),
+      endTime: new Date(now).toLocaleTimeString('en-IL', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit' }),
+      duration,
+      problems: _sessionProblems,
+      correct: _sessionCorrect,
+    });
+    // Keep last 50 sessions
+    if (state.parentData.sessions.length > 50) {
+      state.parentData.sessions = state.parentData.sessions.slice(-50);
+    }
+  }
+  saveGame();
+  _sessionStart = null;
+}
+
+export function getParentData() {
+  const state = getState();
+  return state.parentData || { sessions: [], opStats: {}, levelHistory: [] };
 }

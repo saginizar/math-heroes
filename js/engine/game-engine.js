@@ -1,7 +1,7 @@
 // game-engine.js — Core game state machine
 
 import { recordAnswer } from './difficulty.js';
-import { incrementStats } from './save-manager.js';
+import { incrementStats, trackProblem } from './save-manager.js';
 
 export const GameState = {
   IDLE: 'IDLE',
@@ -53,6 +53,7 @@ export function checkAnswer(session, answer, correctAnswer, operation) {
 
     recordAnswer(operation, true);
     incrementStats(true);
+    trackProblem(operation, true);
   } else {
     session.attemptsOnCurrent++;
     session.streak = 0;
@@ -68,6 +69,7 @@ export function checkAnswer(session, answer, correctAnswer, operation) {
 
     recordAnswer(operation, false);
     incrementStats(false);
+    trackProblem(operation, false);
 
     // CRITICAL: Reset state back to PLAYING so user can interact again
     session.state = GameState.PLAYING;

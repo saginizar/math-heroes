@@ -9,7 +9,7 @@ import { PHRASES, wrongExplanationHebrew, fillTemplate, numberToHebrew } from '.
 import { shakeElement, glowElement, pulseElement, stopPulse, showCorrectCelebration } from '../ui/animations.js';
 import { delay, pickRandom } from '../utils/helpers.js';
 import { renderStars } from '../ui/progress-bar.js';
-import { getQuestionCountNumber, getState } from '../engine/save-manager.js';
+import { getQuestionCountNumber, getState, trackLevelComplete } from '../engine/save-manager.js';
 
 let currentSession = null;
 let currentSetup = null;
@@ -17,6 +17,7 @@ let currentLevelConfig = null;
 let onLevelComplete = null;
 let shieldRound = 0;
 let heroRescuePhase = 0;
+let levelStartTime = null;
 
 // Level types that should NOT use the user's question count setting
 const FIXED_COUNT_TYPES = ['HeroRescue', 'NumberCatcher', 'StarCollector'];
@@ -34,6 +35,7 @@ export function startLevel(container, worldId, levelIndex, completionCallback) {
   onLevelComplete = completionCallback;
   shieldRound = 0;
   heroRescuePhase = 0;
+  levelStartTime = Date.now();
 
   currentSession = createGameSession(config);
   startSession(currentSession);
@@ -536,14 +538,30 @@ function checkStreak() {
 
 async function finishLevel(gameArea) {
   playFanfare();
+  const duration = levelStartTime ? Date.now() - levelStartTime : 0;
+  const accuracy = getAccuracyPercent(currentSession);
+  const passed = checkPassThreshold(currentSession);
+  // Track for parent report
+  if (currentLevelConfig) {
+    trackLevelComplete(
+      currentLevelConfig.worldId,
+      currentLevelConfig.levelIndex,
+      currentLevelConfig.type,
+      currentLevelConfig.operation,
+      accuracy,
+      currentSession.firstTryCorrect >= currentSession.totalProblems ? 3 : accuracy >= 80 ? 2 : 1,
+      passed,
+      duration
+    );
+  }
   if (onLevelComplete) {
     onLevelComplete({
       totalProblems: currentSession.totalProblems,
       correctCount: currentSession.correctCount,
       firstTryCorrect: currentSession.firstTryCorrect,
       streak: currentSession.bestStreak,
-      passed: checkPassThreshold(currentSession),
-      accuracyPercent: getAccuracyPercent(currentSession),
+      passed,
+      accuracyPercent: accuracy,
       config: currentLevelConfig,
     });
   }
