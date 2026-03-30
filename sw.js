@@ -1,6 +1,6 @@
 // sw.js — Service Worker for offline PWA support
 
-const CACHE_NAME = 'mathheroes-v14';
+const CACHE_NAME = 'mathheroes-v15';
 const ASSETS = [
   './',
   'index.html',
@@ -14,6 +14,8 @@ const ASSETS = [
   'js/audio/hebrew-phrases.js',
   'js/audio/speech.js',
   'js/audio/sfx.js',
+  'js/audio/phrase-player.js',
+  'js/audio/tts-hybrid.js',
   'js/engine/save-manager.js',
   'js/engine/difficulty.js',
   'js/engine/question-gen.js',

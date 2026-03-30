@@ -357,8 +357,10 @@ export function generatePathChooserProblem(targetAnswer, params, operation = 'ad
     }
     // Ensure we have exactly 2 wrong expressions
     while (wrongExprs.length < 2) {
-      const fallback = multTarget + wrongExprs.length + 1;
-      wrongExprs.push({ display: `${fallback}`, value: fallback });
+      let fb = multTarget + wrongExprs.length + 1;
+      while (usedValues.has(fb)) fb++;
+      usedValues.add(fb);
+      wrongExprs.push({ display: `${fb} × 1`, value: fb });
     }
     const paths = shuffleArray([correctExpr, ...wrongExprs]);
     return { target: multTarget, paths, correctIndex: paths.indexOf(correctExpr) };

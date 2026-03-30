@@ -1,6 +1,7 @@
 // app.js — Entry point, screen router, event delegation
 
 import { initSpeech, speak, warmUpSpeech, markInteraction, isUsingHebrew, setTTSMuted } from './audio/speech.js';
+import { setPhrasesMuted } from './audio/phrase-player.js';
 import { resumeAudio, playKeyPop, playPop, playWhoosh, startBgMusic, toggleBgMusic, isBgMusicPlaying, isMuted, setMuted, suspendAudio, resumeAudioFull } from './audio/sfx.js';
 import { loadGame, saveGame, isSetupComplete, setPlayerName, setHeroCharacter, setQuestionCount, setDifficultyPref, completeSetup, getState, getTodayProblems, ensureWorldLevels, startParentSession, endParentSession } from './engine/save-manager.js';
 import { renderSplash } from './screens/splash.js';
@@ -79,6 +80,7 @@ function init() {
       const nowMuted = !isMuted();
       setMuted(nowMuted);
       setTTSMuted(nowMuted);
+      setPhrasesMuted(nowMuted);
       muteBtn.textContent = nowMuted ? '🔇' : '🔊';
       if (nowMuted) {
         try { speechSynthesis.cancel(); } catch (err) {}
