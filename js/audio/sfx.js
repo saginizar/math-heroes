@@ -310,3 +310,30 @@ export function toggleBgMusic() {
   }
   return bgMusicPlaying;
 }
+
+// Pause all audio when app is minimized (Chrome Android keeps playing)
+export function suspendAudio() {
+  if (ctx && ctx.state === 'running') {
+    ctx.suspend();
+  }
+  if (bgMusicPlaying) {
+    // Pause the interval but remember we were playing
+    if (bgIntervalId) {
+      clearInterval(bgIntervalId);
+      bgIntervalId = null;
+    }
+  }
+}
+
+export function resumeAudioFull() {
+  if (globalMuted) return;
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
+  // Restart bg music loop if it was playing before suspend
+  if (bgMusicPlaying && !bgIntervalId) {
+    bgIntervalId = setInterval(() => {
+      if (bgMusicPlaying) playMelodyBar();
+    }, 3600);
+  }
+}

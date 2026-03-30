@@ -123,6 +123,9 @@ function renderCurrentProblem(container) {
       currentSetup = setupPowerLaunch(levelContainer, config);
       bindAnswerButtons(levelContainer, gameArea);
   }
+
+  // Inject hidden report button (small, bottom-left, parent uses)
+  injectReportButton(gameArea, config);
 }
 
 async function speakMission(config) {
@@ -175,7 +178,15 @@ async function speakMission(config) {
       if (engText) await speak(engText);
     }
   }
-  if (currentSetup?.hebrewText) {
+  // Speak the math problem — English only (Hebrew TTS doesn't produce sound)
+  if (currentSetup?.question && !isUsingHebrew()) {
+    const q = currentSetup.question;
+    await delay(300);
+    if (q.a !== undefined && q.op) {
+      const opWord = q.op === '+' ? 'plus' : q.op === '-' ? 'minus' : q.op === '×' ? 'times' : q.op === '÷' ? 'divided by' : 'plus';
+      speak(`How much is ${q.a} ${opWord} ${q.b}?`);
+    }
+  } else if (isUsingHebrew() && currentSetup?.hebrewText) {
     await delay(300);
     speak(currentSetup.hebrewText);
   }
@@ -216,7 +227,11 @@ function bindPathButtons(levelContainer, gameArea) {
         playCorrect();
         playWhoosh();
         const pathName = getState().player.name || '';
-        speak(`${pickRandom(PHRASES.correct)} ${pathName}!`);
+        if (isUsingHebrew()) {
+          speak(`${pickRandom(PHRASES.correct)} ${pathName}!`);
+        } else {
+          speak(pickRandom([`Correct, ${pathName}!`, `Great job, ${pathName}!`, `Amazing, ${pathName}!`, `Perfect, ${pathName}!`]));
+        }
         setAnimating(currentSession);
         checkStreak();
 
@@ -251,8 +266,11 @@ function bindShieldOrbs(levelContainer, gameArea) {
         showCorrectCelebration();
         playCorrect();
         const shieldName = getState().player.name || '';
-        const msg = pickRandom(PHRASES.correct);
-        speak(`${msg} ${shieldName}!`);
+        if (isUsingHebrew()) {
+          speak(`${pickRandom(PHRASES.correct)} ${shieldName}!`);
+        } else {
+          speak(pickRandom([`Correct, ${shieldName}!`, `Great job, ${shieldName}!`, `Perfect, ${shieldName}!`]));
+        }
         checkAnswer(currentSession, currentSetup.target, currentSetup.target, currentLevelConfig.operation);
         setAnimating(currentSession);
         checkStreak();
@@ -272,7 +290,7 @@ function bindShieldOrbs(levelContainer, gameArea) {
         }
       } else {
         playWrong();
-        speak(PHRASES.wrong);
+        speak(isUsingHebrew() ? PHRASES.wrong : 'Almost! Try again.');
         checkAnswer(currentSession, -1, currentSetup.target, currentLevelConfig.operation);
       }
     }, { passive: false });
@@ -427,8 +445,12 @@ async function handleWrongAnswerPath(btn, levelContainer, gameArea) {
   });
 
   await delay(600);
-  const explanation = fillTemplate(PHRASES.wrongGeneric, { answer: numberToHebrew(currentSetup.correctAnswer) });
-  await speak(explanation, 0.85);
+  if (isUsingHebrew()) {
+    const explanation = fillTemplate(PHRASES.wrongGeneric, { answer: numberToHebrew(currentSetup.correctAnswer) });
+    await speak(explanation, 0.85);
+  } else {
+    await speak(`Almost! The correct answer is ${currentSetup.correctAnswer}.`, 0.85);
+  }
   await delay(1500);
 
   setPlaying(currentSession);
@@ -532,4 +554,88 @@ export function cleanupGameplay() {
   currentSession = null;
   currentSetup = null;
   currentLevelConfig = null;
+}
+
+// ========== REPORT MISSING ANSWER ==========
+function injectReportButton(gameArea, config) {
+  const btn = document.createElement('button');
+  btn.className = 'report-btn';
+  btn.textContent = '⚠';
+  btn.title = 'Report bad question';
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    reportAndSkip(gameArea);
+  }, { passive: false });
+  gameArea.appendChild(btn);
+}
+
+function reportAndSkip(gameArea) {
+  if (!currentSession || !currentSetup || !currentLevelConfig) return;
+
+  // Collect full question data for debugging
+  const report = {
+    timestamp: new Date().toISOString(),
+    world: currentLevelConfig.worldId,
+    level: currentLevelConfig.levelIndex,
+    missionKey: currentLevelConfig.missionKey,
+    type: currentSetup.type,
+    operation: currentLevelConfig.operation,
+    difficulty: currentLevelConfig.difficulty,
+  };
+
+  const q = currentSetup.question;
+  if (q) {
+    report.a = q.a;
+    report.b = q.b;
+    report.op = q.op;
+    report.expectedAnswer = q.answer ?? currentSetup.correctAnswer;
+    report.options = q.options || [];
+    report.displayText = q.displayText || '';
+    if (q.sequence) report.sequence = q.sequence;
+    if (q.paths) report.paths = q.paths.map(p => ({ display: p.display, value: p.value }));
+    if (q.correctIndex !== undefined) report.correctIndex = q.correctIndex;
+    if (currentSetup.target !== undefined) report.target = currentSetup.target;
+    if (currentSetup.bondData) {
+      report.orbs = currentSetup.bondData.orbs;
+      report.bondTarget = currentSetup.bondData.target;
+    }
+    if (currentSetup.threshold !== undefined) report.threshold = currentSetup.threshold;
+  }
+
+  // Save to localStorage
+  const KEY = 'mathheroes_reports';
+  const reports = JSON.parse(localStorage.getItem(KEY) || '[]');
+  reports.push(report);
+  localStorage.setItem(KEY, JSON.stringify(reports));
+
+  // Count as correct so the kid can continue
+  currentSession.correctCount++;
+  currentSession.firstTryCorrect++;
+
+  // Advance to next problem
+  if (currentSetup.type === 'HeroRescue') {
+    heroRescuePhase++;
+    if (heroRescuePhase < (currentSetup.totalPhases || 3)) {
+      currentSession.currentProblemIndex++;
+      setPlaying(currentSession);
+      renderCurrentProblem(gameArea);
+      return;
+    }
+  }
+
+  const hasMore = advanceProblem(currentSession);
+  if (hasMore) {
+    renderCurrentProblem(gameArea);
+  } else {
+    finishLevel(gameArea);
+  }
+}
+
+export function getReports() {
+  return JSON.parse(localStorage.getItem('mathheroes_reports') || '[]');
+}
+
+export function clearReports() {
+  localStorage.removeItem('mathheroes_reports');
 }

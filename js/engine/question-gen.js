@@ -97,7 +97,16 @@ function generateDistractors(answer, count, params) {
 
   // Pick required count
   const arr = shuffleArray([...distractors]);
-  return arr.slice(0, count);
+  const result = arr.slice(0, count);
+
+  // Guarantee we return exactly `count` distractors
+  while (result.length < count) {
+    const fallback = answer + result.length + 1;
+    if (fallback !== answer && !result.includes(fallback)) {
+      result.push(fallback);
+    }
+  }
+  return result;
 }
 
 function isDuplicate(question) {
@@ -181,26 +190,46 @@ export function generateNumberBonds(target, orbCount) {
   const orbs = [];
   const pairs = [];
 
-  // Ensure at least 2 valid pairs
-  for (let i = 0; i < Math.min(3, Math.floor(orbCount / 2)); i++) {
+  // Try to generate up to 3 valid pairs
+  let attempts = 0;
+  while (pairs.length < Math.min(3, Math.floor(orbCount / 2)) && attempts < 30) {
     const a = randomInt(1, target - 1);
     const b = target - a;
-    if (!orbs.includes(a) && !orbs.includes(b) && a !== b) {
+    attempts++;
+    if (a === b) {
+      // Allow duplicate-value pair (e.g., 4+4=8) — need two separate orbs
+      if (orbs.filter(v => v === a).length < 2) {
+        orbs.push(a, b);
+        pairs.push([a, b]);
+      }
+    } else if (!orbs.includes(a) && !orbs.includes(b)) {
       orbs.push(a, b);
       pairs.push([a, b]);
     }
   }
 
+  // GUARANTEE at least one valid pair
+  if (pairs.length === 0) {
+    const a = Math.max(1, Math.floor(target / 2) - 1);
+    const b = target - a;
+    orbs.push(a, b);
+    pairs.push([a, b]);
+  }
+
   // Fill remaining orbs with non-pairing numbers
-  while (orbs.length < orbCount) {
+  let fillAttempts = 0;
+  while (orbs.length < orbCount && fillAttempts < 100) {
     const n = randomInt(1, target + 3);
-    if (!orbs.includes(n)) {
-      // Make sure it doesn't accidentally form a valid pair
-      const complement = target - n;
-      if (!orbs.includes(complement) || n === complement) {
-        orbs.push(n);
-      }
+    fillAttempts++;
+    const complement = target - n;
+    // Allow if its complement isn't already present (prevents accidental extra pairs)
+    if (!orbs.includes(complement)) {
+      orbs.push(n);
     }
+  }
+  // Fallback: fill with numbers well above target (can't form pairs)
+  while (orbs.length < orbCount) {
+    orbs.push(target + orbs.length + 1);
   }
 
   return { orbs: shuffleArray(orbs.slice(0, orbCount)), target, pairs };
@@ -297,6 +326,7 @@ export function generatePathChooserProblem(targetAnswer, params, operation = 'ad
       let tries = 0;
       do { val = randomInt(Math.max(1, targetAnswer - 5), targetAnswer + 5); tries++; }
       while (usedValues.has(val) && tries < 20);
+      if (usedValues.has(val)) val = targetAnswer + i + 2; // Guaranteed unique fallback
       usedValues.add(val);
       wrongExprs.push(makeSubExpr(val));
     }
@@ -314,14 +344,21 @@ export function generatePathChooserProblem(targetAnswer, params, operation = 'ad
     // Build a proper product target
     const a = randomInt(2, 5), b = randomInt(2, 5);
     const multTarget = a * b;
+    usedValues.add(multTarget); // Track the actual correct product
     correctExpr = makeMultExpr(multTarget);
     for (let i = 0; i < 2; i++) {
       let fa, fb, val;
       let tries = 0;
       do { fa = randomInt(2, 5); fb = randomInt(2, 5); val = fa * fb; tries++; }
       while (usedValues.has(val) && tries < 20);
+      if (usedValues.has(val)) continue; // Skip if couldn't find unique value
       usedValues.add(val);
       wrongExprs.push(makeMultExpr(val));
+    }
+    // Ensure we have exactly 2 wrong expressions
+    while (wrongExprs.length < 2) {
+      const fallback = multTarget + wrongExprs.length + 1;
+      wrongExprs.push({ display: `${fallback}`, value: fallback });
     }
     const paths = shuffleArray([correctExpr, ...wrongExprs]);
     return { target: multTarget, paths, correctIndex: paths.indexOf(correctExpr) };
@@ -338,6 +375,7 @@ export function generatePathChooserProblem(targetAnswer, params, operation = 'ad
       let tries = 0;
       do { val = randomInt(1, 10); tries++; }
       while (usedValues.has(val) && tries < 20);
+      if (usedValues.has(val)) val = targetAnswer + i + 2; // Guaranteed unique fallback
       usedValues.add(val);
       wrongExprs.push(makeDivExpr(val));
     }
@@ -351,6 +389,7 @@ export function generatePathChooserProblem(targetAnswer, params, operation = 'ad
       let tries = 0;
       do { val = randomInt(Math.max(3, targetAnswer - 8), targetAnswer + 8); tries++; }
       while ((usedValues.has(val) || val < 2) && tries < 20);
+      if (usedValues.has(val)) val = targetAnswer + i + 2; // Guaranteed unique fallback
       usedValues.add(val);
       const { a: wa, b: wb } = makeNoCarryPair(val);
       wrongExprs.push({ display: `${wa} + ${wb}`, value: val });

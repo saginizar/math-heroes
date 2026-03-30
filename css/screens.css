@@ -1225,3 +1225,48 @@
   animation: buttonPulse 1s infinite;
   text-shadow: 0 0 10px rgba(34,204,85,0.4);
 }
+
+/* ===== REPORT BUTTON (hidden parent tool) ===== */
+.report-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.25);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 0;
+  cursor: pointer;
+}
+.report-btn:active { background: rgba(255,100,100,0.3); }
+
+/* ===== DEBUG PANEL (triple-tap mute) ===== */
+.debug-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.92);
+  z-index: 20000;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+  color: #EEE;
+  font-family: monospace;
+  font-size: 13px;
+}
+.debug-overlay h2 { color: #FFD700; font-size: 18px; margin-bottom: 12px; }
+.debug-close { position: fixed; top: 12px; right: 12px; background: #FF4466; color: #FFF; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; z-index: 20001; cursor: pointer; }
+.debug-copy { background: #22CC55; color: #FFF; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; cursor: pointer; margin: 8px 0; }
+.debug-clear { background: #FF4466; color: #FFF; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; cursor: pointer; margin: 8px 0; }
+.debug-report { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin-bottom: 10px; white-space: pre-wrap; word-break: break-all; border-left: 3px solid #FFD700; }
+.debug-empty { color: rgba(255,255,255,0.5); font-style: italic; }

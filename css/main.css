@@ -630,65 +630,123 @@ button:disabled {
 
 /* ===== SMALL SCREEN / TABLET RESPONSIVE (height-based) ===== */
 @media (max-height: 750px) {
-  .vertical-math {
-    padding: 14px 28px !important;
-    min-width: 140px !important;
-  }
-  .vmath-row {
-    font-size: clamp(28px, 9vw, 52px) !important;
-    line-height: 1.1 !important;
-  }
-  .vmath-sign-row {
-    font-size: clamp(24px, 7vw, 40px) !important;
-    padding: 2px 0 !important;
-  }
-  .vmath-line {
-    margin: 4px 0 !important;
-  }
-  .vmath-answer {
-    font-size: clamp(26px, 8vw, 46px) !important;
-  }
-  .answer-buttons {
-    gap: 8px !important;
-    padding: 8px 4px !important;
-  }
+  /* --- Global elements --- */
+  .screen { padding: 8px !important; }
+  .problem-text { padding: 4px !important; font-size: clamp(28px, 8vw, 44px) !important; }
+  .answer-buttons { gap: 8px !important; padding: 8px 4px !important; }
   .num-btn, .answer-btn {
-    min-height: 72px !important;
-    font-size: clamp(28px, 8vw, 44px) !important;
-    padding: 8px 16px !important;
+    min-height: 64px !important; font-size: clamp(28px, 8vw, 44px) !important; padding: 8px 16px !important;
   }
-  .gameplay-header {
-    padding: 6px 10px !important;
-    margin-bottom: 6px !important;
-    font-size: 14px !important;
-  }
-  .gp-level-name {
-    font-size: 15px !important;
-  }
-  .game-area {
-    min-height: 70px !important;
-  }
-  .power-launch-scene .game-area {
-    min-height: 70px !important;
-    padding: 8px !important;
-  }
-  .streak-display {
-    font-size: 16px !important;
-    padding: 2px !important;
-  }
-  .problem-text {
-    padding: 4px !important;
-  }
+  .game-area { min-height: 60px !important; }
+  .level-scene { gap: 6px !important; }
+  .visual-aid { padding: 4px !important; font-size: 16px !important; }
+  .streak-display { font-size: 16px !important; padding: 2px !important; }
+
+  /* --- Gameplay header --- */
+  .gameplay-header { padding: 6px 10px !important; margin-bottom: 4px !important; font-size: 13px !important; }
+  .gp-level-name { font-size: 14px !important; }
+
+  /* --- Vertical math (PowerLaunch, HeroRescue) --- */
+  .vertical-math { padding: 12px 24px !important; min-width: 130px !important; }
+  .vmath-row { font-size: clamp(28px, 9vw, 48px) !important; line-height: 1.1 !important; }
+  .vmath-sign-row { font-size: clamp(22px, 7vw, 36px) !important; padding: 2px 0 !important; }
+  .vmath-line { margin: 3px 0 !important; }
+  .vmath-answer { font-size: clamp(24px, 8vw, 42px) !important; }
+  .power-launch-scene .game-area { min-height: 60px !important; padding: 6px !important; }
+
+  /* --- PathChooser --- */
+  .target-number { font-size: 42px !important; }
+  .target-label { font-size: 16px !important; }
+  .path-chooser-scene .target-display { padding: 6px !important; }
+  .paths-container { gap: 8px !important; padding: 8px 4px !important; }
+  .path-btn { min-height: 64px !important; font-size: clamp(16px, 4vw, 22px) !important; }
+  .hero-at-top { padding: 4px !important; }
+
+  /* --- ShieldMatch --- */
+  .shield-center { width: 90px !important; height: 90px !important; border-width: 4px !important; }
+  .shield-target { font-size: 38px !important; }
+  .shield-area { gap: 12px !important; }
+  .orbs-ring { gap: 8px !important; max-width: 280px !important; }
+  .orb-btn { width: 60px !important; height: 60px !important; font-size: 24px !important; border-width: 4px !important; }
+  .shield-match-scene .match-instruction { font-size: 17px !important; padding: 6px !important; }
+
+  /* --- StarCollector --- */
+  .star-collector-scene .rule-text { font-size: 18px !important; padding: 6px !important; }
+  .collector-progress { font-size: 22px !important; padding: 2px 0 !important; }
+  .collector-grid { gap: 10px !important; padding: 10px !important; max-width: 360px !important; }
+  .collector-num { font-size: clamp(24px, 7vw, 40px) !important; padding: 10px !important; }
+
+  /* --- BridgeBuilder --- */
+  .bridge-planks { gap: 6px !important; }
+  .bridge-plank { width: 46px !important; height: 46px !important; font-size: 20px !important; }
+
+  /* --- HeroRescue phases --- */
+  .phase-indicator { padding: 6px !important; }
+  .phase-dot { width: 36px !important; height: 36px !important; font-size: 15px !important; }
+  .phase-line { width: 22px !important; }
+
+  /* --- NumberCatcher --- */
+  .number-catcher-scene .rule-text { font-size: 18px !important; padding: 6px !important; }
+  .catcher-area { min-height: 150px !important; }
+
+  /* --- World Map --- */
+  .world-map-content { gap: 8px !important; padding: 8px !important; }
+  .map-header { padding: 4px !important; }
+  .map-title { font-size: 22px !important; }
+  .world-grid { gap: 10px !important; padding: 4px !important; }
+  .world-node { padding: 12px 10px !important; min-height: 100px !important; }
+  .world-icon { font-size: 36px !important; }
+  .world-name { font-size: 14px !important; }
+
+  /* --- Level Select --- */
+  .ls-header { padding: 4px !important; }
+  .ls-title { font-size: 20px !important; }
+  .level-path { padding: 8px 0 !important; }
+  .level-node-row { padding: 8px 0 !important; }
+  .level-path-line { height: 16px !important; }
+  .level-node { width: 54px !important; height: 54px !important; font-size: 18px !important; }
+  .level-name { font-size: 12px !important; }
+
+  /* --- Reward / Retry --- */
+  .reward-content { gap: 10px !important; }
+  .reward-title { font-size: 26px !important; }
+  .reward-score { font-size: 18px !important; padding: 6px 14px !important; }
+  .reward-item { font-size: 17px !important; }
+  .reward-coin-gain { font-size: 22px !important; }
+  .reward-hero { transform: scale(0.8); }
+  .reward-buttons { gap: 10px !important; }
+  .stars-display { font-size: 24px !important; }
+  .retry-encouragement { font-size: 15px !important; }
+
+  /* --- Setup --- */
+  .setup-content { gap: 10px !important; padding: 10px 6px !important; }
+  .setup-title { font-size: 24px !important; }
+  .character-grid { gap: 10px !important; }
+  .character-card { padding: 10px 8px !important; }
+  .name-input { font-size: 26px !important; padding: 12px 24px !important; width: 240px !important; }
+  .settings-row { gap: 14px !important; }
+
+  /* --- Splash --- */
+  .splash-title { font-size: 36px !important; }
+  .splash-greeting { font-size: 22px !important; }
+  .splash-subtitle { font-size: 16px !important; }
+  .splash-heroes { gap: 10px !important; }
+  .splash-hero-icon { font-size: 36px !important; }
+  .btn-start { font-size: 22px !important; padding: 12px 36px !important; }
 }
 
 @media (max-height: 600px) {
-  .power-launch-scene .game-area {
-    display: none !important;
-  }
-  .vertical-math {
-    padding: 10px 20px !important;
-  }
-  .vmath-row {
-    font-size: clamp(24px, 8vw, 44px) !important;
-  }
+  .power-launch-scene .game-area { display: none !important; }
+  .vertical-math { padding: 8px 16px !important; }
+  .vmath-row { font-size: clamp(22px, 7vw, 40px) !important; }
+  .shield-center { width: 72px !important; height: 72px !important; }
+  .shield-target { font-size: 30px !important; }
+  .orb-btn { width: 52px !important; height: 52px !important; font-size: 20px !important; }
+  .target-number { font-size: 34px !important; }
+  .collector-grid { gap: 8px !important; padding: 6px !important; }
+  .collector-num { font-size: clamp(20px, 6vw, 34px) !important; padding: 6px !important; }
+  .world-node { min-height: 80px !important; padding: 8px !important; }
+  .world-icon { font-size: 28px !important; }
+  .reward-hero { transform: scale(0.65); }
+  .reward-title { font-size: 22px !important; }
 }

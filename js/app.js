@@ -1,12 +1,12 @@
 // app.js — Entry point, screen router, event delegation
 
 import { initSpeech, speak, warmUpSpeech, markInteraction, isUsingHebrew, setTTSMuted } from './audio/speech.js';
-import { resumeAudio, playKeyPop, playPop, playWhoosh, startBgMusic, toggleBgMusic, isBgMusicPlaying, isMuted, setMuted } from './audio/sfx.js';
+import { resumeAudio, playKeyPop, playPop, playWhoosh, startBgMusic, toggleBgMusic, isBgMusicPlaying, isMuted, setMuted, suspendAudio, resumeAudioFull } from './audio/sfx.js';
 import { loadGame, saveGame, isSetupComplete, setPlayerName, setHeroCharacter, setQuestionCount, setDifficultyPref, completeSetup, getState, getTodayProblems, ensureWorldLevels } from './engine/save-manager.js';
 import { renderSplash } from './screens/splash.js';
 import { renderWorldMap } from './screens/world-map.js';
 import { renderLevelSelect } from './screens/level-select.js';
-import { startLevel, cleanupGameplay } from './screens/gameplay.js';
+import { startLevel, cleanupGameplay, getReports, clearReports } from './screens/gameplay.js';
 import { renderReward } from './screens/reward.js';
 import { PHRASES, fillTemplate } from './audio/hebrew-phrases.js';
 import { delay } from './utils/helpers.js';
@@ -55,12 +55,25 @@ function init() {
     onFirstInteraction();
   }, { once: true, passive: true });
 
-  // Persistent mute button
+  // Persistent mute button + triple-tap debug panel
   const muteBtn = document.getElementById('global-mute-btn');
   if (muteBtn) {
+    let muteTapCount = 0;
+    let muteTapTimer = null;
     muteBtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
+
+      // Triple-tap detection
+      muteTapCount++;
+      clearTimeout(muteTapTimer);
+      muteTapTimer = setTimeout(() => { muteTapCount = 0; }, 600);
+      if (muteTapCount >= 3) {
+        muteTapCount = 0;
+        showDebugPanel();
+        return;
+      }
+
       const nowMuted = !isMuted();
       setMuted(nowMuted);
       setTTSMuted(nowMuted);
@@ -80,10 +93,23 @@ function init() {
     renderSplash(screens.splash);
   }
 
-  // Save on visibility change
+  // Stop all sound when app is minimized/backgrounded (Chrome Android keeps playing)
+  function pauseAllAudio() {
+    saveGame();
+    try { speechSynthesis.cancel(); } catch (e) {}
+    suspendAudio();
+  }
+  function resumeAllAudio() {
+    if (!document.hidden) resumeAudioFull();
+  }
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) saveGame();
+    if (document.hidden) pauseAllAudio(); else resumeAllAudio();
   });
+  // Android Chrome fallbacks — visibilitychange doesn't always fire on home button
+  window.addEventListener('blur', pauseAllAudio);
+  window.addEventListener('focus', resumeAllAudio);
+  window.addEventListener('pagehide', pauseAllAudio);
+  window.addEventListener('pageshow', resumeAllAudio);
 }
 
 function showScreen(screenId) {
@@ -396,6 +422,63 @@ async function showSessionSummary() {
       speak(`Today you solved ${count} problems! Great job!`);
     }
   }
+}
+
+function showDebugPanel() {
+  // Remove existing
+  const existing = document.querySelector('.debug-overlay');
+  if (existing) { existing.remove(); return; }
+
+  const reports = getReports();
+  const overlay = document.createElement('div');
+  overlay.className = 'debug-overlay';
+
+  const reportsJson = JSON.stringify(reports, null, 2);
+  const reportCards = reports.length === 0
+    ? '<div class="debug-empty">No reports yet. Use the ⚠ button during gameplay to report a bad question.</div>'
+    : reports.map((r, i) => {
+        const lines = [
+          `#${i + 1} — ${r.timestamp}`,
+          `World: ${r.world} | Level: ${r.level} | Type: ${r.type}`,
+          `Operation: ${r.operation} | Difficulty: ${r.difficulty}`,
+        ];
+        if (r.a !== undefined) lines.push(`Problem: ${r.a} ${r.op} ${r.b} = ? (expected: ${r.expectedAnswer})`);
+        if (r.options?.length) lines.push(`Options shown: [${r.options.join(', ')}]`);
+        if (r.paths) lines.push(`Paths: ${r.paths.map(p => `${p.display}=${p.value}`).join(' | ')}`);
+        if (r.orbs) lines.push(`Orbs: [${r.orbs.join(', ')}] Target: ${r.bondTarget}`);
+        if (r.sequence) lines.push(`Sequence: [${r.sequence.map(n => n === null ? '?' : n).join(', ')}]`);
+        if (r.threshold !== undefined) lines.push(`Threshold: > ${r.threshold}`);
+        return `<div class="debug-report">${lines.join('\n')}</div>`;
+      }).join('');
+
+  overlay.innerHTML = `
+    <button class="debug-close" id="debug-close">✕ Close</button>
+    <h2>Question Reports (${reports.length})</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="debug-copy" id="debug-copy">Copy JSON</button>
+      <button class="debug-clear" id="debug-clear">Clear All</button>
+    </div>
+    <div id="debug-reports">${reportCards}</div>
+    <pre id="debug-json" style="display:none;font-size:11px;color:#aaa;margin-top:12px;">${reportsJson}</pre>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#debug-close').addEventListener('pointerdown', () => overlay.remove());
+  overlay.querySelector('#debug-copy').addEventListener('pointerdown', () => {
+    navigator.clipboard.writeText(reportsJson).then(() => {
+      overlay.querySelector('#debug-copy').textContent = 'Copied!';
+      setTimeout(() => { overlay.querySelector('#debug-copy').textContent = 'Copy JSON'; }, 1500);
+    }).catch(() => {
+      // Fallback: show the JSON
+      const pre = overlay.querySelector('#debug-json');
+      pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+  overlay.querySelector('#debug-clear').addEventListener('pointerdown', () => {
+    clearReports();
+    overlay.querySelector('#debug-reports').innerHTML = '<div class="debug-empty">All reports cleared.</div>';
+  });
 }
 
 // Initialize on DOM ready
