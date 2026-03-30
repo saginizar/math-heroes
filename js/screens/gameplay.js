@@ -3,8 +3,7 @@
 import { createGameSession, startSession, checkAnswer, advanceProblem, setAnimating, setPlaying, checkPassThreshold, getAccuracyPercent } from '../engine/game-engine.js';
 import { getLevelConfig } from '../levels/world-data.js';
 import { setupPowerLaunch, setupPathChooser, setupNumberCatcher, setupShieldMatch, setupBridgeBuilder, setupHeroRescue, setupStarCollector } from '../levels/level-types.js';
-import { stopSpeech, isUsingHebrew } from '../audio/speech.js';
-import { speakMath, speakCorrect, speakWrong, speakExplanation, speakWrongAnswer, speakMissionIntro, speakStreak, speakFoundAll } from '../audio/tts-hybrid.js';
+import { speak, stopSpeech, isUsingHebrew } from '../audio/speech.js';
 import { playCorrect, playWrong, playWhoosh, playPop, playFanfare, playStreak, playRetry } from '../audio/sfx.js';
 import { PHRASES, wrongExplanationHebrew, fillTemplate, numberToHebrew } from '../audio/hebrew-phrases.js';
 import { shakeElement, glowElement, pulseElement, stopPulse, showCorrectCelebration } from '../ui/animations.js';
@@ -132,16 +131,66 @@ function renderCurrentProblem(container) {
 }
 
 async function speakMission(config) {
-  const playerName = getState().player.name || '';
-  // Mission intro: player name via live TTS, mission phrase pre-recorded
+  const playerName = getState().player.name || 'Hero';
   if (currentSession.currentProblemIndex === 0) {
-    await speakMissionIntro(config.missionKey, playerName);
+    if (isUsingHebrew()) {
+      const missionText = PHRASES.missions[config.missionKey];
+      if (missionText) await speak(`${playerName}! ${missionText}`);
+    } else {
+      // English fallback mission narration — personalized with name
+      const engMissions = {
+        '1-1': `${playerName}! Time to run!`,
+        '1-2': `${playerName}, three paths. Only one is correct!`,
+        '1-3': `${playerName}, find all the numbers bigger than four!`,
+        '1-4': `${playerName}, find two numbers that add up to the target!`,
+        '1-5': `${playerName}, what is the missing number? Build the bridge!`,
+        '1-6': `${playerName}! Doctor Zero is here! Three missions to free the city!`,
+        '2-1': `${playerName}! Climb the Web Tower!`,
+        '2-2': `${playerName}, match the numbers to power the web shield!`,
+        '2-3': `${playerName}, pick the right path through the webs!`,
+        '2-4': `${playerName}, find all the numbers bigger than seven!`,
+        '2-5': `${playerName}, build the spider bridge! What number is missing?`,
+        '2-6': `${playerName}! The Web King awaits! Three challenges to free the tower!`,
+        '3-1': `${playerName}! First experiment in the Iron Lab!`,
+        '3-2': `${playerName}, choose the correct path through the lab!`,
+        '3-3': `${playerName}, power up the iron shield!`,
+        '3-4': `${playerName}, find all numbers bigger than ten!`,
+        '3-5': `${playerName}, build the metal bridge! Find the missing number!`,
+        '3-6': `${playerName}! The Iron Robot is activated! Three missions to shut it down!`,
+        '4-1': `${playerName}! The mushroom journey begins!`,
+        '4-2': `${playerName}, match numbers to power the mushroom shield!`,
+        '4-3': `${playerName}, find the path through the forest!`,
+        '4-4': `${playerName}, build the nature bridge! What's the missing number?`,
+        '4-5': `${playerName}, find all numbers bigger than fifteen!`,
+        '4-6': `${playerName}! The Mushroom King rises! Three missions to save the forest!`,
+        '5-1': `${playerName}! Launch into the Grand Circuit!`,
+        '5-2': `${playerName}, pick the right track!`,
+        '5-3': `${playerName}, charge the race shield!`,
+        '5-4': `${playerName}, find all numbers bigger than twenty!`,
+        '5-5': `${playerName}, build the race bridge! Find the missing number!`,
+        '5-6': `${playerName}! The final race! Three challenges to become champion!`,
+        '6-1': `${playerName}! Enter Doctor Zero's Lair!`,
+        '6-2': `${playerName}, break through Zero's shield!`,
+        '6-3': `${playerName}, three paths. Choose wisely!`,
+        '6-4': `${playerName}, build the final bridge!`,
+        '6-5': `${playerName}, find the hidden numbers in the darkness!`,
+        '6-6': `${playerName}! Doctor Zero himself! Three final missions to save the world!`,
+      };
+      const engText = engMissions[config.missionKey];
+      if (engText) await speak(engText);
+    }
   }
-  // Math question: composed from pre-recorded number + operator files
-  const q = currentSetup?.question;
-  if (q?.a !== undefined && q.op) {
+  // Speak the math problem — English only (Hebrew TTS doesn't produce sound)
+  if (currentSetup?.question && !isUsingHebrew()) {
+    const q = currentSetup.question;
     await delay(300);
-    speakMath(q.a, q.op, q.b);
+    if (q.a !== undefined && q.op) {
+      const opWord = q.op === '+' ? 'plus' : q.op === '-' ? 'minus' : q.op === '×' ? 'times' : q.op === '÷' ? 'divided by' : 'plus';
+      speak(`How much is ${q.a} ${opWord} ${q.b}?`);
+    }
+  } else if (isUsingHebrew() && currentSetup?.hebrewText) {
+    await delay(300);
+    speak(currentSetup.hebrewText);
   }
 }
 
@@ -179,7 +228,12 @@ function bindPathButtons(levelContainer, gameArea) {
         showCorrectCelebration();
         playCorrect();
         playWhoosh();
-        speakCorrect();
+        const pathName = getState().player.name || '';
+        if (isUsingHebrew()) {
+          speak(`${pickRandom(PHRASES.correct)} ${pathName}!`);
+        } else {
+          speak(pickRandom([`Correct, ${pathName}!`, `Great job, ${pathName}!`, `Amazing, ${pathName}!`, `Perfect, ${pathName}!`]));
+        }
         setAnimating(currentSession);
         checkStreak();
 
@@ -213,7 +267,12 @@ function bindShieldOrbs(levelContainer, gameArea) {
       if (result.correct) {
         showCorrectCelebration();
         playCorrect();
-        speakCorrect();
+        const shieldName = getState().player.name || '';
+        if (isUsingHebrew()) {
+          speak(`${pickRandom(PHRASES.correct)} ${shieldName}!`);
+        } else {
+          speak(pickRandom([`Correct, ${shieldName}!`, `Great job, ${shieldName}!`, `Perfect, ${shieldName}!`]));
+        }
         checkAnswer(currentSession, currentSetup.target, currentSetup.target, currentLevelConfig.operation);
         setAnimating(currentSession);
         checkStreak();
@@ -233,7 +292,7 @@ function bindShieldOrbs(levelContainer, gameArea) {
         }
       } else {
         playWrong();
-        speakWrong();
+        speak(isUsingHebrew() ? PHRASES.wrong : 'Almost! Try again.');
         checkAnswer(currentSession, -1, currentSetup.target, currentLevelConfig.operation);
       }
     }, { passive: false });
@@ -253,6 +312,7 @@ function bindStarCollector(levelContainer, gameArea) {
       if (result.correct) {
         playCorrect();
         glowElement(btn);
+        const pName = getState().player.name || '';
 
         if (result.done) {
           // All matching numbers found — complete
@@ -262,7 +322,7 @@ function bindStarCollector(levelContainer, gameArea) {
           currentSession.totalProblems = currentSetup.totalMatching;
           currentSession.state = 'COMPLETE';
           showCorrectCelebration();
-          speakFoundAll();
+          speak(`Amazing, ${pName}! You found them all!`);
           await delay(1200);
           finishLevel(gameArea);
         }
@@ -278,7 +338,19 @@ async function handleCorrectAnswer(btn, levelContainer, gameArea) {
   glowElement(btn);
   showCorrectCelebration();
   playCorrect();
-  await speakCorrect();
+  const playerName = getState().player.name || '';
+  if (isUsingHebrew()) {
+    await speak(`${pickRandom(PHRASES.correct)} ${playerName}!`);
+  } else {
+    await speak(pickRandom([
+      `Correct, ${playerName}!`,
+      `Great job, ${playerName}!`,
+      `Amazing, ${playerName}!`,
+      `You are a hero, ${playerName}!`,
+      `Perfect, ${playerName}!`,
+      `Awesome, ${playerName}!`,
+    ]));
+  }
   setAnimating(currentSession);
 
   if (currentSetup.onCorrect) currentSetup.onCorrect();
@@ -329,11 +401,23 @@ async function handleWrongAnswer(btn, levelContainer, gameArea) {
   // 3. Narrate explanation
   await delay(600);
   const q = currentSetup.question;
-  if (q && q.a !== undefined && q.op) {
-    await speakExplanation(q.a, q.op, q.b, currentSetup.correctAnswer);
+  let explanation;
+  if (isUsingHebrew()) {
+    if (q && q.a !== undefined && q.op) {
+      explanation = wrongExplanationHebrew(q.a, q.op, q.b, currentSetup.correctAnswer);
+    } else {
+      explanation = fillTemplate(PHRASES.wrongGeneric, { answer: numberToHebrew(currentSetup.correctAnswer) });
+    }
   } else {
-    await speakWrongAnswer(currentSetup.correctAnswer);
+    const pn = getState().player.name || '';
+    if (q && q.a !== undefined && q.op) {
+      const opWord = q.op === '+' ? 'plus' : q.op === '-' ? 'minus' : 'times';
+      explanation = `Almost, ${pn}! The answer is ${currentSetup.correctAnswer}, because ${q.a} ${opWord} ${q.b} equals ${currentSetup.correctAnswer}.`;
+    } else {
+      explanation = `Almost, ${pn}! The answer is ${currentSetup.correctAnswer}.`;
+    }
   }
+  await speak(explanation, 0.85);
 
   // 4. Show visual "why" (dot counting) for addition with small numbers
   if (q && q.op === '+' && q.a <= 10 && q.b <= 10) {
@@ -363,7 +447,12 @@ async function handleWrongAnswerPath(btn, levelContainer, gameArea) {
   });
 
   await delay(600);
-  await speakWrongAnswer(currentSetup.correctAnswer);
+  if (isUsingHebrew()) {
+    const explanation = fillTemplate(PHRASES.wrongGeneric, { answer: numberToHebrew(currentSetup.correctAnswer) });
+    await speak(explanation, 0.85);
+  } else {
+    await speak(`Almost! The correct answer is ${currentSetup.correctAnswer}.`, 0.85);
+  }
   await delay(1500);
 
   setPlaying(currentSession);
@@ -435,14 +524,15 @@ function highlightOtherCombos(container, target, matchedOrbs) {
 
 function checkStreak() {
   const streak = currentSession.streak;
+  const pName = getState().player.name || '';
   if (streak === 2) {
-    setTimeout(() => { playStreak(); speakStreak(2); }, 600);
+    setTimeout(() => { playStreak(); speak(isUsingHebrew() ? `${pName}! ${PHRASES.streak2}` : `Two in a row, ${pName}!`); }, 600);
   } else if (streak === 3) {
-    setTimeout(() => { playStreak(); speakStreak(3); }, 600);
+    setTimeout(() => { playStreak(); speak(isUsingHebrew() ? `${pName}! ${PHRASES.streak3}` : `Three in a row! Amazing, ${pName}!`); }, 600);
   } else if (streak === 5) {
-    setTimeout(() => { playStreak(); speakStreak(5); }, 600);
+    setTimeout(() => { playStreak(); speak(isUsingHebrew() ? `${pName}! ${PHRASES.streak5}` : `Five in a row! ${pName}, you are a superhero!`); }, 600);
   } else if (streak === 10) {
-    setTimeout(() => { playStreak(); speakStreak(10); }, 600);
+    setTimeout(() => { playStreak(); speak(isUsingHebrew() ? `${pName}! ${PHRASES.streak10}` : `Ten in a row! ${pName} is unstoppable!`); }, 600);
   }
 }
 
