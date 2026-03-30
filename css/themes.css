@@ -1,0 +1,46 @@
+/* themes.css — World-specific color palettes */
+
+/* Default theme (Speed City) is set in main.css :root */
+
+/* World themes applied via data attribute or JS class */
+[data-world="speed_city"],
+.theme-speed {
+  --world-primary: #00D4FF;
+  --world-secondary: #FFE100;
+  --world-bg: #1A0A2E;
+}
+
+[data-world="web_tower"],
+.theme-web {
+  --world-primary: #E23636;
+  --world-secondary: #C0C0C0;
+  --world-bg: #1B2838;
+}
+
+[data-world="iron_lab"],
+.theme-tech {
+  --world-primary: #FFD700;
+  --world-secondary: #B22222;
+  --world-bg: #2A1A1A;
+}
+
+[data-world="mushroom_quest"],
+.theme-platformer {
+  --world-primary: #E52521;
+  --world-secondary: #43B047;
+  --world-bg: #6DB6FF;
+}
+
+[data-world="grand_circuit"],
+.theme-racing {
+  --world-primary: #FF0000;
+  --world-secondary: #FFFFFF;
+  --world-bg: #1A3A1A;
+}
+
+[data-world="dr_zero_lair"],
+.theme-boss {
+  --world-primary: #39FF14;
+  --world-secondary: #2D1B69;
+  --world-bg: #0A0A0A;
+}

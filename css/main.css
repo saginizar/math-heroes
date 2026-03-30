@@ -1,0 +1,629 @@
+/* main.css — Reset, variables, global styles, RTL */
+
+:root {
+  /* Global colors — BRIGHT kid-friendly theme */
+  --bg-dark: #4A90D9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --text-primary: #2D2D5E;
+  --text-secondary: #6B6B9E;
+  --color-correct: #22CC55;
+  --color-wrong: #FF4466;
+  --color-locked: #AAAACC;
+  --color-gold: #FFD700;
+  --color-xp: #00BBFF;
+
+  /* World theme (overridden per world) */
+  --world-primary: #00D4FF;
+  --world-secondary: #FFE100;
+  --world-bg: #4A90D9;
+
+  /* Typography */
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-number: 'Segoe UI', system-ui, sans-serif;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html {
+  direction: rtl;
+  font-family: var(--font-main);
+  font-size: 16px;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  color: var(--text-primary);
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Screen management */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Buttons base */
+button {
+  font-family: var(--font-main);
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.1s;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  color: #FFF;
+  min-height: 60px;
+  min-width: 120px;
+  padding: 12px 32px;
+  font-size: 24px;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #22CC55, #45E685) !important;
+  box-shadow: 0 4px 15px rgba(34, 204, 85, 0.5) !important;
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.9);
+  color: var(--text-primary);
+  border: 3px solid var(--world-primary);
+  min-height: 60px;
+  min-width: 120px;
+  padding: 12px 32px;
+  font-size: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-back {
+  background: rgba(255,255,255,0.25);
+  color: #FFF;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 8px 20px;
+  font-size: 18px;
+  backdrop-filter: blur(4px);
+}
+
+/* Number/answer buttons */
+.num-btn, .answer-btn {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(240,240,255,0.95) 100%);
+  color: var(--text-primary);
+  border: 5px solid var(--world-primary);
+  min-height: 88px;
+  min-width: 110px;
+  padding: 12px 24px;
+  font-family: var(--font-number);
+  font-size: clamp(36px, 10vw, 52px);
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.18), inset 0 -4px 0 rgba(0,0,0,0.06);
+  border-radius: 22px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  flex: 1;
+  max-width: 160px;
+}
+
+.num-btn:active, .answer-btn:active {
+  transform: scale(0.93);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Ripple effect */
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  animation: ripple 0.4s ease-out;
+  pointer-events: none;
+}
+
+/* Visual aid dots */
+.visual-aid {
+  text-align: center;
+  font-size: 20px;
+  padding: 8px;
+  color: var(--world-primary);
+  letter-spacing: 4px;
+}
+
+.dots-group {
+  color: var(--world-secondary);
+}
+
+.hint-dots {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Hint states */
+.hint-grayed {
+  opacity: 0.15 !important;
+  pointer-events: none;
+}
+
+.pulse-hint {
+  animation: pulseHint 1s infinite;
+}
+
+/* Stars */
+.stars-display {
+  text-align: center;
+  font-size: 30px;
+}
+
+.star {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.star-filled {
+  color: var(--color-gold);
+  text-shadow: 0 0 10px rgba(255, 225, 0, 0.5);
+}
+
+.star-empty {
+  color: #DDD;
+}
+
+.star-reveal {
+  animation: starReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Coin Bar */
+.coin-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.coin-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.coin-bar {
+  flex: 1;
+  height: 16px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.coin-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  border-radius: 8px;
+  transition: width 1s ease-out;
+}
+
+.coin-label {
+  font-size: 16px;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Confetti particles */
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confettiFall 2s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Problem text */
+.problem-text {
+  text-align: center;
+  font-size: clamp(36px, 10vw, 56px);
+  font-weight: 700;
+  font-family: var(--font-number);
+  padding: 20px 16px;
+  color: #FFF;
+  text-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  align-items: center;
+}
+
+/* Vertical math display */
+.vertical-math {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: rgba(255,255,255,0.15);
+  border-radius: 24px;
+  padding: 28px 44px;
+  min-width: 180px;
+  direction: ltr;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.2);
+}
+
+.vmath-row {
+  font-size: clamp(40px, 12vw, 72px);
+  font-weight: 900;
+  font-family: var(--font-number);
+  line-height: 1.2;
+  color: #FFF;
+  text-shadow: 0 3px 6px rgba(0,0,0,0.25);
+  text-align: right;
+  direction: ltr;
+  white-space: nowrap;
+}
+
+.vmath-sign-row {
+  text-align: center;
+  color: var(--color-gold);
+  font-size: clamp(32px, 9vw, 56px);
+  line-height: 1;
+  padding: 4px 0;
+}
+
+.vmath-bottom {
+  text-align: right;
+}
+
+.vmath-line {
+  width: 100%;
+  height: 5px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 3px;
+  margin: 8px 0;
+}
+
+.vmath-answer {
+  color: var(--color-gold);
+  text-align: center;
+  width: 100%;
+  font-size: clamp(36px, 10vw, 64px);
+  animation: buttonPulse 1.5s infinite;
+}
+
+/* Answer buttons container */
+.answer-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 8px;
+}
+
+/* Game area */
+.game-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 120px;
+}
+
+/* ===== HERO AVATAR (CSS-drawn character) ===== */
+.hero-avatar {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Sizes */
+.hero-small { transform: scale(0.5); }
+.hero-medium { transform: scale(0.8); }
+.hero-large { transform: scale(1.2); }
+
+/* Head */
+.hero-head {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #FFD4B0;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-head.has-mask {
+  background: var(--world-primary);
+  box-shadow: inset 0 20px 0 #FFD4B0;
+}
+
+/* Eyes */
+.hero-eye {
+  position: absolute;
+  width: 6px;
+  height: 8px;
+  background: #222;
+  border-radius: 50%;
+  top: 16px;
+}
+.hero-eye-l { left: 10px; }
+.hero-eye-r { right: 10px; }
+
+/* Crown */
+.hero-crown {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 14px solid var(--color-gold);
+}
+.hero-crown::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: -8px;
+  width: 16px;
+  height: 8px;
+  background: var(--color-gold);
+  border-radius: 0 0 3px 3px;
+}
+
+/* Body */
+.hero-body {
+  width: 36px;
+  height: 40px;
+  background: var(--world-primary);
+  border-radius: 6px 6px 2px 2px;
+  margin-top: -4px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Belt */
+.hero-belt {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--color-gold);
+  border-radius: 2px;
+}
+
+/* Arms */
+.hero-arms {
+  position: absolute;
+  top: 44px;
+  width: 80px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 0;
+}
+.hero-arm {
+  width: 12px;
+  height: 30px;
+  background: var(--world-primary);
+  border-radius: 6px;
+}
+.hero-arm.has-gloves {
+  border-bottom: 8px solid var(--color-gold);
+}
+
+/* Legs */
+.hero-legs {
+  display: flex;
+  gap: 6px;
+  margin-top: -2px;
+  z-index: 1;
+}
+.hero-leg {
+  width: 14px;
+  height: 28px;
+  background: #4444AA;
+  border-radius: 3px 3px 5px 5px;
+}
+.hero-leg.has-boots {
+  border-bottom: 10px solid var(--world-primary);
+  border-radius: 3px 3px 6px 6px;
+}
+
+/* Cape */
+.hero-cape {
+  position: absolute;
+  top: 38px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-top: 50px solid #CC2244;
+  opacity: 0.9;
+  z-index: 0;
+}
+
+/* ===== CORRECT CELEBRATION OVERLAY ===== */
+.correct-celebration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.celeb-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(34,204,85,0.5) 0%, rgba(255,215,0,0.3) 40%, transparent 70%);
+  animation: celebFlash 1.2s ease-out forwards;
+}
+
+.celeb-emojis {
+  position: absolute;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 80%;
+}
+
+.celeb-emoji {
+  font-size: 52px;
+  animation: celebEmoji 1s ease-out forwards;
+  animation-delay: calc(var(--i) * 0.08s);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.celeb-text {
+  font-size: 120px;
+  font-weight: 900;
+  color: var(--color-correct);
+  text-shadow: 0 0 40px rgba(34,204,85,0.8), 0 4px 8px rgba(0,0,0,0.3);
+  animation: celebCheck 1s ease-out forwards;
+}
+
+/* ===== GLOBAL FLOATING MUTE BUTTON ===== */
+.global-mute-btn {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border: 3px solid rgba(0,0,0,0.1);
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  padding: 0;
+}
+
+.global-mute-btn:active {
+  transform: scale(0.9);
+}
+
+/* Floating decorations (used across screens) */
+.floating-decor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  font-size: 30px;
+  opacity: 0.4;
+  animation: floatDecor 6s ease-in-out infinite;
+}
+
+.floating-decor:nth-child(2) { animation-delay: -1s; animation-duration: 8s; }
+.floating-decor:nth-child(3) { animation-delay: -2s; animation-duration: 7s; }
+.floating-decor:nth-child(4) { animation-delay: -3s; animation-duration: 9s; }
+.floating-decor:nth-child(5) { animation-delay: -4s; animation-duration: 5s; }
+.floating-decor:nth-child(6) { animation-delay: -0.5s; animation-duration: 10s; }
+.floating-decor:nth-child(7) { animation-delay: -5s; animation-duration: 7.5s; }
+.floating-decor:nth-child(8) { animation-delay: -2.5s; animation-duration: 6.5s; }
+
+/* Wandering characters — move around the screen */
+.wander-decor {
+  animation: wanderLR 10s ease-in-out infinite !important;
+  opacity: 0.5 !important;
+}
+
+/* Sparkle element */
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  font-size: 18px;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Flying character that crosses the screen */
+.fly-across {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  font-size: 32px;
+  animation: flyAcross 12s linear infinite;
+  opacity: 0;
+}
+
+/* Gentle spin decor */
+.spin-decor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  animation: gentleSpin 8s linear infinite;
+  opacity: 0.3;
+}
+
+/* Color-shifting background helper */
+.color-shift-bg {
+  animation: colorShift 8s ease-in-out infinite;
+}
+
+/* Zoom-bounce icons */
+.zoom-bounce {
+  animation: zoomBounce 3s ease-in-out infinite;
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#87CEEB">
+  <title>גיבורי המספרים</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/screens.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Setup (name + character + settings) -->
+    <div id="screen-setup" class="screen"></div>
+
+    <!-- Splash Screen -->
+    <div id="screen-splash" class="screen"></div>
+
+    <!-- World Map -->
+    <div id="screen-world-map" class="screen"></div>
+
+    <!-- Level Select -->
+    <div id="screen-level-select" class="screen"></div>
+
+    <!-- Gameplay -->
+    <div id="screen-gameplay" class="screen">
+      <div id="game-area"></div>
+    </div>
+
+    <!-- Reward -->
+    <div id="screen-reward" class="screen"></div>
+
+    <!-- Persistent floating mute button (visible on ALL screens) -->
+    <button id="global-mute-btn" class="global-mute-btn" aria-label="Mute">🔊</button>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
