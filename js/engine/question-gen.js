@@ -47,12 +47,15 @@ function makeAddition(params) {
 }
 
 function makeSubtraction(params) {
-  // Ensure non-negative result
-  let a = randomInt(params.min, params.max);
-  let b = randomInt(params.min, Math.min(a, params.max));
-  if (a < b) [a, b] = [b, a];
-  const answer = a - b;
-  return { a, b, op: '-', answer, hebrewText: problemToHebrew(a, '-', b) };
+  let a, b, retries = 0;
+  do {
+    a = randomInt(params.min, params.max);
+    b = randomInt(params.min, params.max);
+    if (a < b) [a, b] = [b, a];
+    retries++;
+  } while (a === b && retries < 30);
+  if (a === b) b = Math.max(params.min, a - 1);
+  return { a, b, op: '-', answer: a - b, hebrewText: problemToHebrew(a, '-', b) };
 }
 
 function makeMultiplication(params) {
@@ -307,6 +310,61 @@ function makeNoCarryPair(target) {
   // Fallback: simple split
   const a = Math.floor(target / 2);
   return { a, b: target - a };
+}
+
+// Generate a column addition problem for step-by-step solving
+export function generateColumnAdd(difficulty) {
+  let a = 7, b = 8;
+  let retryCount = 0;
+
+  switch (difficulty) {
+    case 1: // ones+ones with carry (e.g. 7+8=15)
+      do { a = randomInt(5, 9); b = randomInt(5, 9); retryCount++; }
+      while (a + b < 10 && retryCount < 30);
+      break;
+    case 2: // 2-digit + 1-digit (e.g. 24+7)
+      a = randomInt(12, 49); b = randomInt(5, 9);
+      break;
+    case 3: { // 2-digit + 2-digit no carry
+      retryCount = 0;
+      do { a = randomInt(11, 49); b = randomInt(11, 49); retryCount++; }
+      while (((a % 10) + (b % 10) > 9 || Math.floor(a / 10) + Math.floor(b / 10) > 9) && retryCount < 50);
+      break;
+    }
+    case 4: { // 2-digit + 2-digit with carry in ones
+      retryCount = 0;
+      do { a = randomInt(14, 79); b = randomInt(14, 79); retryCount++; }
+      while ((a % 10) + (b % 10) <= 9 && retryCount < 50);
+      break;
+    }
+    case 5: { // result >= 100
+      retryCount = 0;
+      do { a = randomInt(50, 99); b = randomInt(50, 99); retryCount++; }
+      while (a + b < 100 && retryCount < 50);
+      break;
+    }
+    case 6: // 3-digit + 2-digit
+      a = randomInt(100, 299); b = randomInt(15, 99);
+      break;
+    default:
+      do { a = randomInt(5, 9); b = randomInt(5, 9); } while (a + b < 10);
+  }
+
+  const sum = a + b;
+  const numCols = sum.toString().length; // 2 or 3
+  const steps = [];
+  let carry = 0;
+  for (let col = 0; col < numCols; col++) {
+    const digitA = Math.floor(a / Math.pow(10, col)) % 10;
+    const digitB = Math.floor(b / Math.pow(10, col)) % 10;
+    const total = digitA + digitB + carry;
+    const writeDigit = total % 10;
+    const carryOut = Math.floor(total / 10);
+    steps.push({ col, digitA, digitB, carryIn: carry, total, writeDigit, carryOut });
+    carry = carryOut;
+  }
+
+  return { a, b, sum, numCols, steps };
 }
 
 // Generate expression for Path Chooser (supports all 4 operations)

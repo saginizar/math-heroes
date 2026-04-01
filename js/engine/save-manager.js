@@ -145,7 +145,7 @@ export function setDifficultyPref(pref) {
   gameState.player.difficultyPref = pref;
   // Reset adaptive difficulty levels when preference changes
   for (const op of Object.keys(gameState.difficulty)) {
-    const base = pref === 'easy' ? 2 : pref === 'hard' ? 3 : 2;
+    const base = pref === 'easy' ? 2 : pref === 'medium' ? 3 : 5;
     gameState.difficulty[op].level = base;
     gameState.difficulty[op].history = [];
   }
@@ -168,7 +168,11 @@ export function getQuestionCountNumber() {
 
 export function updateLevel(worldId, levelIndex, stars, accuracy) {
   const world = gameState.worlds[worldId];
-  if (!world || !world.levels[levelIndex]) return;
+  if (!world) return;
+  // Grow the levels array if needed (e.g. for newly added level 7)
+  while (world.levels.length <= levelIndex) {
+    world.levels.push({ id: world.levels.length + 1, stars: 0, completed: false, bestAccuracy: 0 });
+  }
   const lvl = world.levels[levelIndex];
   lvl.completed = true;
   lvl.stars = Math.max(lvl.stars, stars);

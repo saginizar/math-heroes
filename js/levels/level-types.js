@@ -1,6 +1,6 @@
 // level-types.js — Render + interaction logic for each level type
 
-import { generateQuestion, generateComparisonSet, generateNumberBonds, generateSequence, generatePathChooserProblem } from '../engine/question-gen.js';
+import { generateQuestion, generateComparisonSet, generateNumberBonds, generateSequence, generatePathChooserProblem, generateColumnAdd } from '../engine/question-gen.js';
 import { getDifficultyParams } from '../engine/difficulty.js';
 import { shuffleArray, randomInt, delay } from '../utils/helpers.js';
 import { PHRASES, numberToHebrew } from '../audio/hebrew-phrases.js';
@@ -429,6 +429,76 @@ export function setupStarCollector(container, levelConfig) {
         return { correct: false, done: false };
       }
     },
+  };
+}
+
+// ========== COLUMN ADDITION ==========
+export function setupColumnAdd(container, levelConfig) {
+  const problem = generateColumnAdd(levelConfig.difficulty || 1);
+  const { a, b, sum, numCols, steps } = problem;
+
+  // Display order: left = most significant column
+  const colOrder = [];
+  for (let c = numCols - 1; c >= 0; c--) colOrder.push(c);
+
+  const getDigit = (n, col) => Math.floor(n / Math.pow(10, col)) % 10;
+  const hasDigit = (n, col) => col < n.toString().length;
+
+  const carryHtml = colOrder.map(c =>
+    `<div class="ca-cell ca-carry-cell" id="ca-carry-${c}" data-col="${c}"></div>`
+  ).join('');
+
+  const aHtml = colOrder.map(c =>
+    `<div class="ca-cell ca-num-digit">${hasDigit(a, c) ? getDigit(a, c) : ''}</div>`
+  ).join('');
+
+  const bHtml = colOrder.map(c =>
+    `<div class="ca-cell ca-num-digit">${hasDigit(b, c) ? getDigit(b, c) : ''}</div>`
+  ).join('');
+
+  const ansHtml = colOrder.map(c =>
+    `<div class="ca-cell ca-ans-cell${c === 0 ? ' ca-active' : ''}" id="ca-ans-${c}" data-col="${c}">?</div>`
+  ).join('');
+
+  const keypadHtml = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+    .map(d => `<button class="ca-key" data-d="${d}">${d}</button>`)
+    .join('');
+
+  container.innerHTML = `
+    <div class="level-scene column-add-scene">
+      <div class="ca-title">Column Addition</div>
+      <div class="ca-problem">
+        <div class="ca-row ca-carry-row">
+          <div class="ca-op-spacer"></div>
+          ${carryHtml}
+        </div>
+        <div class="ca-row">
+          <div class="ca-op-spacer"></div>
+          ${aHtml}
+        </div>
+        <div class="ca-row ca-row-b">
+          <div class="ca-op-cell">+</div>
+          ${bHtml}
+        </div>
+        <div class="ca-line-row"><div class="ca-line"></div></div>
+        <div class="ca-row">
+          <div class="ca-op-spacer"></div>
+          ${ansHtml}
+        </div>
+      </div>
+      <div class="ca-hint" id="ca-hint"></div>
+      <div class="ca-keypad">${keypadHtml}</div>
+    </div>
+  `;
+
+  return {
+    type: 'ColumnAdd',
+    problem,
+    currentStep: 0,
+    hadMistake: false,
+    hebrewText: `${a} plus ${b} equals ${sum}`,
+    correctAnswer: sum,
+    question: { a, b, op: '+', answer: sum, displayText: `${a} + ${b} = ?` },
   };
 }
 

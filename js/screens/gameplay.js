@@ -2,7 +2,7 @@
 
 import { createGameSession, startSession, checkAnswer, advanceProblem, setAnimating, setPlaying, checkPassThreshold, getAccuracyPercent } from '../engine/game-engine.js';
 import { getLevelConfig } from '../levels/world-data.js';
-import { setupPowerLaunch, setupPathChooser, setupNumberCatcher, setupShieldMatch, setupBridgeBuilder, setupHeroRescue, setupStarCollector } from '../levels/level-types.js';
+import { setupPowerLaunch, setupPathChooser, setupNumberCatcher, setupShieldMatch, setupBridgeBuilder, setupHeroRescue, setupStarCollector, setupColumnAdd } from '../levels/level-types.js';
 import { speak, stopSpeech, isUsingHebrew } from '../audio/speech.js';
 import { playCorrect, playWrong, playWhoosh, playPop, playFanfare, playStreak, playRetry } from '../audio/sfx.js';
 import { PHRASES, wrongExplanationHebrew, fillTemplate, numberToHebrew } from '../audio/hebrew-phrases.js';
@@ -121,6 +121,12 @@ function renderCurrentProblem(container) {
       bindAnswerButtons(levelContainer, gameArea);
       break;
 
+    case 'ColumnAdd':
+      currentSetup = setupColumnAdd(levelContainer, config);
+      speakMission(config);
+      bindColumnAdd(levelContainer, gameArea);
+      break;
+
     default:
       currentSetup = setupPowerLaunch(levelContainer, config);
       bindAnswerButtons(levelContainer, gameArea);
@@ -175,12 +181,20 @@ async function speakMission(config) {
         '6-4': `${playerName}, build the final bridge!`,
         '6-5': `${playerName}, find the hidden numbers in the darkness!`,
         '6-6': `${playerName}! Doctor Zero himself! Three final missions to save the world!`,
+        '1-7': `${playerName}! Let's learn column addition — ones first, then tens!`,
+        '2-7': `${playerName}! Column addition with bigger numbers — ones column first!`,
+        '3-7': `${playerName}! Two-digit column addition — line them up and add!`,
+        '4-7': `${playerName}! Column addition with carrying — watch the carry!`,
+        '5-7': `${playerName}! Column addition — the answer is bigger than one hundred!`,
+        '6-7': `${playerName}! Three-digit column addition — the ultimate challenge!`,
       };
       const engText = engMissions[config.missionKey];
       if (engText) await speak(engText);
     }
   }
   // Speak the math problem — English only (Hebrew TTS doesn't produce sound)
+  // ColumnAdd narrates step-by-step in bindColumnAdd — skip auto-speak here
+  if (currentSetup?.type === 'ColumnAdd') return;
   if (currentSetup?.question && !isUsingHebrew()) {
     const q = currentSetup.question;
     await delay(300);
@@ -572,6 +586,102 @@ export function cleanupGameplay() {
   currentSession = null;
   currentSetup = null;
   currentLevelConfig = null;
+}
+
+// ========== COLUMN ADDITION ==========
+function bindColumnAdd(levelContainer, gameArea) {
+  updateColumnHint(levelContainer);
+  const step = currentSetup.problem.steps[0];
+  setTimeout(() => {
+    if (step.carryIn > 0) {
+      speak(`What is ${step.digitA} plus ${step.digitB} plus ${step.carryIn}?`);
+    } else {
+      speak(`Start with the ones: what is ${step.digitA} plus ${step.digitB}?`);
+    }
+  }, 600);
+
+  levelContainer.querySelectorAll('.ca-key').forEach(key => {
+    key.addEventListener('pointerdown', async (e) => {
+      e.preventDefault();
+      if (currentSession.state === 'ANIMATING') return;
+      const digit = parseInt(key.dataset.d);
+      await handleColumnDigit(digit, levelContainer, gameArea);
+    }, { passive: false });
+  });
+}
+
+function updateColumnHint(levelContainer) {
+  const hint = levelContainer.querySelector('#ca-hint');
+  if (!hint || !currentSetup?.problem) return;
+  const step = currentSetup.problem.steps[currentSetup.currentStep];
+  const colName = step.col === 0 ? 'Ones' : step.col === 1 ? 'Tens' : 'Hundreds';
+  if (step.carryIn > 0) {
+    hint.textContent = `${colName}: ${step.digitA} + ${step.digitB} + 1 (carry) = ?`;
+  } else {
+    hint.textContent = `${colName}: ${step.digitA} + ${step.digitB} = ?`;
+  }
+}
+
+async function handleColumnDigit(digit, levelContainer, gameArea) {
+  if (!currentSetup?.problem) return;
+  const steps = currentSetup.problem.steps;
+  const step = steps[currentSetup.currentStep];
+  const ansCell = levelContainer.querySelector(`#ca-ans-${step.col}`);
+  if (!ansCell) return;
+
+  if (digit === step.writeDigit) {
+    ansCell.textContent = digit;
+    ansCell.classList.remove('ca-active');
+    ansCell.classList.add('ca-correct');
+    playCorrect();
+
+    if (step.carryOut > 0) {
+      const carryCell = levelContainer.querySelector(`#ca-carry-${step.col + 1}`);
+      if (carryCell) {
+        carryCell.textContent = step.carryOut;
+        carryCell.classList.add('ca-carry-shown');
+      }
+    }
+
+    currentSetup.currentStep++;
+
+    if (currentSetup.currentStep >= steps.length) {
+      setAnimating(currentSession);
+      currentSession.correctCount++;
+      if (!currentSetup.hadMistake) currentSession.firstTryCorrect++;
+      const pName = getState().player.name || '';
+      showCorrectCelebration();
+      speak(pickRandom([
+        `Amazing, ${pName}!`,
+        `Perfect, ${pName}! That's column addition!`,
+        `Excellent, ${pName}! You did it!`,
+      ]));
+
+      await delay(1400);
+
+      const hasMore = advanceProblem(currentSession);
+      if (hasMore) renderCurrentProblem(gameArea);
+      else finishLevel(gameArea);
+
+    } else {
+      const nextStep = steps[currentSetup.currentStep];
+      const nextAnsCell = levelContainer.querySelector(`#ca-ans-${nextStep.col}`);
+      if (nextAnsCell) nextAnsCell.classList.add('ca-active');
+      await delay(350);
+      updateColumnHint(levelContainer);
+      const colName = nextStep.col === 0 ? 'ones' : nextStep.col === 1 ? 'tens' : 'hundreds';
+      if (nextStep.carryIn > 0) {
+        speak(`Now the ${colName}s: ${nextStep.digitA} plus ${nextStep.digitB} plus 1 carry?`);
+      } else {
+        speak(`Now the ${colName}s: ${nextStep.digitA} plus ${nextStep.digitB}?`);
+      }
+    }
+
+  } else {
+    currentSetup.hadMistake = true;
+    shakeElement(ansCell);
+    playWrong();
+  }
 }
 
 // ========== REPORT BUTTON (parent tool) ==========

@@ -42,6 +42,7 @@ export function isLevelAvailable(worldId, levelIndex) {
   const world = state.worlds[worldId];
   if (!world || !world.unlocked) return false;
   if (levelIndex === 0) return true; // First level always available
+  if (levelIndex === 6) return true;  // ColumnAdd (level 7) always available once world is unlocked
   // Previous level must be completed
   return world.levels[levelIndex - 1]?.completed === true;
 }

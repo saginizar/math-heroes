@@ -4,18 +4,20 @@ import { clamp } from '../utils/helpers.js';
 import { getState, saveGame } from './save-manager.js';
 
 const DIFFICULTY_PARAMS = {
-  1: { min: 1, max: 5, visualAids: true, distractorDistance: 3 },
-  2: { min: 1, max: 10, visualAids: true, distractorDistance: 2 },
-  3: { min: 1, max: 10, visualAids: false, distractorDistance: 1 },
-  4: { min: 1, max: 20, visualAids: false, distractorDistance: 1 },
-  5: { min: 1, max: 50, visualAids: false, distractorDistance: 1 },
-  6: { min: 1, max: 100, visualAids: false, distractorDistance: 1 },
+  1: { min: 1, max: 5,   visualAids: true,  distractorDistance: 3 },
+  2: { min: 1, max: 10,  visualAids: true,  distractorDistance: 2 },
+  3: { min: 2, max: 15,  visualAids: true,  distractorDistance: 2 },
+  4: { min: 5, max: 25,  visualAids: false, distractorDistance: 1 },
+  5: { min: 5, max: 50,  visualAids: false, distractorDistance: 1 },
+  6: { min: 10, max: 100, visualAids: false, distractorDistance: 1 },
 };
 
 export function getDifficultyParams(operation) {
   const state = getState();
   const diff = state.difficulty[operation] || { level: 1 };
-  const level = clamp(diff.level, 1, 6);
+  const pref = state.player?.difficultyPref || 'easy';
+  const prefFloor = pref === 'hard' ? 4 : pref === 'medium' ? 3 : 1;
+  const level = clamp(Math.max(diff.level, prefFloor), 1, 6);
   return { level, ...DIFFICULTY_PARAMS[level] };
 }
 

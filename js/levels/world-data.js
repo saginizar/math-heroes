@@ -72,6 +72,7 @@ export const WORLDS = {
         missionKey: '1-6',
         isWorldBoss: true,
       },
+      { id: 7, nameHe: 'חיבור בעמודה', type: 'ColumnAdd', difficulty: 1, operation: 'addition', problemCount: 3, reward: 'speed_column', missionKey: '1-7' },
     ],
   },
   web_tower: {
@@ -88,6 +89,7 @@ export const WORLDS = {
       { id: 4, nameHe: 'ציד ברשת', type: 'StarCollector', difficulty: 2, operation: 'comparison', problemCount: 8, threshold: 7, reward: 'web_mask', missionKey: '2-4' },
       { id: 5, nameHe: 'גשר העכביש', type: 'BridgeBuilder', difficulty: 2, operation: 'patterns', problemCount: 4, reward: 'web_cape', missionKey: '2-5' },
       { id: 6, nameHe: 'מלך הקורים', type: 'HeroRescue', difficulty: 3, operation: 'subtraction', problemCount: 3, reward: 'web_crown', bonusReward: 'vehicle_web_swing', missionKey: '2-6', isWorldBoss: true },
+      { id: 7, nameHe: 'חיבור בעמודה', type: 'ColumnAdd', difficulty: 2, operation: 'addition', problemCount: 3, reward: 'web_column', missionKey: '2-7' },
     ],
   },
   iron_lab: {
@@ -104,6 +106,7 @@ export const WORLDS = {
       { id: 4, nameHe: 'מציאת החלקים', type: 'StarCollector', difficulty: 2, operation: 'comparison', problemCount: 8, threshold: 10, reward: 'iron_mask', missionKey: '3-4' },
       { id: 5, nameHe: 'גשר המתכת', type: 'BridgeBuilder', difficulty: 2, operation: 'patterns', problemCount: 4, reward: 'iron_cape', missionKey: '3-5' },
       { id: 6, nameHe: 'רובוט הברזל', type: 'HeroRescue', difficulty: 3, operation: 'multiplication', problemCount: 3, reward: 'iron_crown', bonusReward: 'vehicle_jet', missionKey: '3-6', isWorldBoss: true },
+      { id: 7, nameHe: 'חיבור בעמודה', type: 'ColumnAdd', difficulty: 3, operation: 'addition', problemCount: 3, reward: 'iron_column', missionKey: '3-7' },
     ],
   },
   mushroom_quest: {
@@ -120,6 +123,7 @@ export const WORLDS = {
       { id: 4, nameHe: 'גשר הטבע', type: 'BridgeBuilder', difficulty: 3, operation: 'patterns', problemCount: 4, reward: 'mushroom_hat', missionKey: '4-4' },
       { id: 5, nameHe: 'ציד הפטריות', type: 'StarCollector', difficulty: 3, operation: 'comparison', problemCount: 8, threshold: 15, reward: 'mushroom_cape', missionKey: '4-5' },
       { id: 6, nameHe: 'מלך הפטריות', type: 'HeroRescue', difficulty: 3, operation: 'division', problemCount: 3, reward: 'mushroom_crown', bonusReward: 'vehicle_mushroom_car', missionKey: '4-6', isWorldBoss: true },
+      { id: 7, nameHe: 'חיבור בעמודה', type: 'ColumnAdd', difficulty: 4, operation: 'addition', problemCount: 3, reward: 'mushroom_column', missionKey: '4-7' },
     ],
   },
   grand_circuit: {
@@ -136,6 +140,7 @@ export const WORLDS = {
       { id: 4, nameHe: 'ציד במסלול', type: 'StarCollector', difficulty: 3, operation: 'comparison', problemCount: 8, threshold: 20, reward: 'race_helmet', missionKey: '5-4' },
       { id: 5, nameHe: 'גשר המרוץ', type: 'BridgeBuilder', difficulty: 3, operation: 'patterns', problemCount: 4, reward: 'race_suit', missionKey: '5-5' },
       { id: 6, nameHe: 'אלוף המסלול', type: 'HeroRescue', difficulty: 4, operation: 'multiplication', problemCount: 3, reward: 'race_crown', bonusReward: 'vehicle_race_car', missionKey: '5-6', isWorldBoss: true },
+      { id: 7, nameHe: 'חיבור בעמודה', type: 'ColumnAdd', difficulty: 5, operation: 'addition', problemCount: 3, reward: 'race_column', missionKey: '5-7' },
     ],
   },
   dr_zero_lair: {
@@ -152,6 +157,7 @@ export const WORLDS = {
       { id: 4, nameHe: 'גשר הסוף', type: 'BridgeBuilder', difficulty: 3, operation: 'patterns', problemCount: 4, reward: 'zero_mask', missionKey: '6-4' },
       { id: 5, nameHe: 'ציד החושך', type: 'StarCollector', difficulty: 4, operation: 'comparison', problemCount: 8, threshold: 25, reward: 'zero_cape', missionKey: '6-5' },
       { id: 6, nameHe: 'ד"ר אפס', type: 'HeroRescue', difficulty: 5, operation: 'division', problemCount: 3, reward: 'zero_crown', bonusReward: 'vehicle_zero_ship', missionKey: '6-6', isWorldBoss: true },
+      { id: 7, nameHe: 'חיבור בעמודה', type: 'ColumnAdd', difficulty: 6, operation: 'addition', problemCount: 3, reward: 'zero_column', missionKey: '6-7' },
     ],
   },
 };
